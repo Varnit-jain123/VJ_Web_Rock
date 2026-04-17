@@ -8,8 +8,17 @@ public class Service {
     private Method service;
     private boolean isGetAllowed;
     private boolean isPostAllowed;
+    private String forwardTo;
 
     public Service() {}
+
+    public String getForwardTo() {
+        return forwardTo;
+    }
+
+    public void setForwardTo(String forwardTo) {
+        this.forwardTo = forwardTo;
+    }
 
     public boolean isGetAllowed() {
         return isGetAllowed;

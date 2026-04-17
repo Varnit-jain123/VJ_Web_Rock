@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServlet;
 import com.varnit.jain.webRock.annotations.Path;
 import com.varnit.jain.webRock.annotations.GET;
 import com.varnit.jain.webRock.annotations.POST;
+import com.varnit.jain.webRock.annotations.FORWARD;
 import com.varnit.jain.webRock.model.webRockModel;
 import com.varnit.jain.webRock.pojo.Service;
 
@@ -98,6 +99,10 @@ public class VJWebRockStarter extends HttpServlet {
                                     service.setPath(finalPath);
                                     service.setIsGetAllowed(isGetAllowed);
                                     service.setIsPostAllowed(isPostAllowed);
+                                    
+                                    if (method.isAnnotationPresent(FORWARD.class)) {
+                                        service.setForwardTo(method.getAnnotation(FORWARD.class).value());
+                                    }
                                     
                                     model.getMap().put(finalPath, service);
                                     System.out.println("VJWebRock: Mapped " + finalPath + " -> " + className + "." + method.getName() + " [GET=" + isGetAllowed + ", POST=" + isPostAllowed + "]");

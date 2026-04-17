@@ -3,25 +3,24 @@ package bobby.test;
 import com.varnit.jain.webRock.annotations.*;
 
 @Path("/student")
-public class StudentService
-{
+public class StudentService {
     @Path("/add")
     @POST
-    public String add()
-    {
-        return "Added";
+    @FORWARD("/student/list")
+    public String add() {
+        return "Added (this should not be seen)";
     }
 
-    @Path("/get")
+    @Path("/details")
     @GET
-    public String get()
-    {
-        return "Fetched";
+    @FORWARD("/details.jsp")
+    public String details() {
+        return "Details (this should not be seen)";
     }
 
-    @Path("/all")
-    public String all()
-    {
-        return "Both allowed";
+    @Path("/list")
+    @GET
+    public String list() {
+        return "Listing students (Internal Forward Success)";
     }
 }

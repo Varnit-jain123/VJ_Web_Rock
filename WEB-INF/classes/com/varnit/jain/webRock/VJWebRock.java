@@ -54,10 +54,34 @@ public class VJWebRock extends HttpServlet {
                 // Invoke the mapped method
                 Object result = service.getService().invoke(controller);
                 
-                // Write response (Phase 1 specifies only String return type)
-                response.setContentType("text/html");
-                PrintWriter out = response.getWriter();
-                out.print(result != null ? result.toString() : "");
+                if (service.getForwardTo() != null) {
+                    String forwardPath = service.getForwardTo();
+                    Service targetService = model.getMap().get(forwardPath);
+                    
+                    if (targetService != null) {
+                        // Internal forward
+                        Object targetController = targetService.getServiceClass().getDeclaredConstructor().newInstance();
+                        Object targetResult = targetService.getService().invoke(targetController);
+                        
+                        response.setContentType("text/html");
+                        response.getWriter().print(targetResult != null ? targetResult.toString() : "");
+                    } else {
+                        // Resource forward (JSP/HTML)
+                        javax.servlet.RequestDispatcher rd = request.getRequestDispatcher(forwardPath);
+                        if (rd != null) {
+                            rd.forward(request, response);
+                            return;
+                        } else {
+                            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Forward target not found: " + forwardPath);
+                            return;
+                        }
+                    }
+                } else {
+                    // Normal response
+                    response.setContentType("text/html");
+                    PrintWriter out = response.getWriter();
+                    out.print(result != null ? result.toString() : "");
+                }
                 
             } catch (Exception e) {
                 System.err.println("VJWebRock: Error invoking service method");
