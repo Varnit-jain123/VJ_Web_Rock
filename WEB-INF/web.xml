@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                      http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+  version="4.0">
+
+    <description>
+        VJWebRock implementation
+    </description>
+    <display-name>VJWebRock</display-name>
+
+    <!-- Front Controller Servlet -->
+    <servlet>
+        <servlet-name>VJWebRock</servlet-name>
+        <servlet-class>com.varnit.jain.webRock.VJWebRock</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>VJWebRock</servlet-name>
+        <url-pattern>/schoolService/*</url-pattern>
+    </servlet-mapping>
+
+    <!-- Startup Servlet -->
+    <servlet>
+        <servlet-name>VJWebRockStarter</servlet-name>
+        <servlet-class>com.varnit.jain.webRock.VJWebRockStarter</servlet-class>
+        <init-param>
+            <param-name>SERVICE_PACKAGE_PREFIX</param-name>
+            <param-value>bobby</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+</web-app>
