@@ -13,6 +13,8 @@ import com.varnit.jain.webRock.annotations.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
 import java.util.List;
+import com.google.gson.Gson;
+import java.io.BufferedReader;
 
 public class VJWebRock extends HttpServlet {
     
@@ -188,48 +190,99 @@ public class VJWebRock extends HttpServlet {
                     }
                 }
 
-                // Phase 7: @RequestParameter Method Parameter Binding
+                // Phase 10: JSON Request Body Binding using GSON (Unified Logic)
                 Method method = service.getService();
                 java.lang.reflect.Parameter[] parameters = method.getParameters();
-                Object[] args = new Object[parameters.length];
+                int n = parameters.length;
+                Object[] args = new Object[n];
 
-                for (int i = 0; i < parameters.length; i++) {
-                    java.lang.reflect.Parameter param = parameters[i];
-                    if (param.isAnnotationPresent(RequestParameter.class)) {
-                        RequestParameter rp = param.getAnnotation(RequestParameter.class);
-                        String paramName = rp.value();
-                        String value = request.getParameter(paramName);
+                if (n > 0) {
+                    Gson gson = new Gson();
+                    boolean bodyRead = false;
+                    String jsonBody = "";
+                    boolean jsonUsed = false;
+
+                    for (int i = 0; i < n; i++) {
+                        java.lang.reflect.Parameter param = parameters[i];
                         Class<?> type = param.getType();
-                        Object convertedValue = null;
 
-                        if (value != null) {
+                        // 1. Check for Framework Scopes
+                        if (type == SessionScope.class) {
+                            SessionScope ss = new SessionScope();
+                            ss.setSession(request.getSession());
+                            args[i] = ss;
+                        } else if (type == ApplicationScope.class) {
+                            ApplicationScope as = new ApplicationScope();
+                            as.setServletContext(getServletContext());
+                            args[i] = as;
+                        } else if (type == RequestScope.class) {
+                            RequestScope rs = new RequestScope();
+                            rs.setRequest(request);
+                            args[i] = rs;
+                        } else if (type == ApplicationDirectory.class) {
+                            String path = getServletContext().getRealPath("/");
+                            args[i] = new ApplicationDirectory(path);
+                        } 
+                        // 2. Check for @RequestParameter (Phase 7 support)
+                        else if (param.isAnnotationPresent(RequestParameter.class)) {
+                            RequestParameter rp = param.getAnnotation(RequestParameter.class);
+                            String paramName = rp.value();
+                            String value = request.getParameter(paramName);
+                            Object convertedValue = null;
+
+                            if (value != null) {
+                                try {
+                                    if (type == int.class || type == Integer.class)
+                                        convertedValue = Integer.parseInt(value);
+                                    else if (type == double.class || type == Double.class)
+                                        convertedValue = Double.parseDouble(value);
+                                    else if (type == float.class || type == Float.class)
+                                        convertedValue = Float.parseFloat(value);
+                                    else if (type == long.class || type == Long.class)
+                                        convertedValue = Long.parseLong(value);
+                                    else if (type == boolean.class || type == Boolean.class)
+                                        convertedValue = Boolean.parseBoolean(value);
+                                    else if (type == char.class || type == Character.class) {
+                                        if (value.length() > 0) convertedValue = value.charAt(0);
+                                    } else if (type == String.class)
+                                        convertedValue = value;
+                                } catch (Exception e) {
+                                    System.out.println("Conversion error for: " + paramName);
+                                }
+                            }
+                            args[i] = convertedValue;
+                        }
+                        // 3. Otherwise, treat as JSON Body (Phase 10)
+                        else {
+                            if (jsonUsed) {
+                                response.sendError(500, "Multiple JSON parameters not allowed");
+                                return;
+                            }
+                            
+                            if (!bodyRead) {
+                                try {
+                                    BufferedReader br = request.getReader();
+                                    StringBuilder sb = new StringBuilder();
+                                    String line;
+                                    while ((line = br.readLine()) != null) {
+                                        sb.append(line);
+                                    }
+                                    jsonBody = sb.toString();
+                                    bodyRead = true;
+                                } catch (Exception e) {
+                                    System.out.println("Error reading request body: " + e.getMessage());
+                                }
+                            }
+                            
                             try {
-                                if (type == int.class || type == Integer.class)
-                                    convertedValue = Integer.parseInt(value);
-                                else if (type == double.class || type == Double.class)
-                                    convertedValue = Double.parseDouble(value);
-                                else if (type == float.class || type == Float.class)
-                                    convertedValue = Float.parseFloat(value);
-                                else if (type == long.class || type == Long.class)
-                                    convertedValue = Long.parseLong(value);
-                                else if (type == boolean.class || type == Boolean.class)
-                                    convertedValue = Boolean.parseBoolean(value);
-                                else if (type == char.class || type == Character.class) {
-                                    if (value.length() > 0)
-                                        convertedValue = value.charAt(0);
-                                    else
-                                        System.out.println("Empty value for char parameter: " + paramName);
-                                } else if (type == String.class)
-                                    convertedValue = value;
-                                else
-                                    System.out.println("Unsupported type: " + type.getName());
+                                args[i] = gson.fromJson(jsonBody, type);
+                                jsonUsed = true;
                             } catch (Exception e) {
-                                System.out.println("Conversion error for parameter: " + paramName + " to type " + type.getName());
+                                System.out.println("JSON Parsing Error: " + e.getMessage());
+                                response.sendError(500, "JSON Parsing Error");
+                                return;
                             }
                         }
-                        args[i] = convertedValue;
-                    } else {
-                        args[i] = null;
                     }
                 }
                 
