@@ -230,6 +230,14 @@ public class VJWebRock extends HttpServlet {
                                 } catch (Exception e) {
                                     System.out.println("Conversion error for: " + paramName);
                                 }
+                            } else {
+                                // Safety: Provide default values for primitives to prevent unboxing NullPointerException
+                                if (type == int.class) convertedValue = 0;
+                                else if (type == long.class) convertedValue = 0L;
+                                else if (type == double.class) convertedValue = 0.0;
+                                else if (type == float.class) convertedValue = 0.0f;
+                                else if (type == boolean.class) convertedValue = false;
+                                else if (type == char.class) convertedValue = '\u0000';
                             }
                             args[i] = convertedValue;
                         }
