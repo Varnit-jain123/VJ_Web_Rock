@@ -8,6 +8,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.varnit.jain.webRock.model.webRockModel;
 import com.varnit.jain.webRock.pojo.Service;
+import com.varnit.jain.webRock.scope.*;
+import com.varnit.jain.webRock.annotations.*;
+import java.lang.reflect.Method;
 
 public class VJWebRock extends HttpServlet {
     
@@ -50,6 +53,52 @@ public class VJWebRock extends HttpServlet {
             try {
                 // Create instance of the service class
                 Object controller = service.getServiceClass().getDeclaredConstructor().newInstance();
+                Class<?> clazz = service.getServiceClass();
+
+                // Phase 5: Scope Injection
+                if (clazz.isAnnotationPresent(InjectApplicationScope.class)) {
+                    try {
+                        Method m = clazz.getMethod("setApplicationScope", ApplicationScope.class);
+                        ApplicationScope as = new ApplicationScope();
+                        as.setServletContext(getServletContext());
+                        m.invoke(controller, as);
+                    } catch (Exception e) {
+                        System.out.println("ApplicationScope setter missing in " + clazz.getName());
+                    }
+                }
+
+                if (clazz.isAnnotationPresent(InjectSessionScope.class)) {
+                    try {
+                        Method m = clazz.getMethod("setSessionScope", SessionScope.class);
+                        SessionScope ss = new SessionScope();
+                        ss.setSession(request.getSession());
+                        m.invoke(controller, ss);
+                    } catch (Exception e) {
+                        System.out.println("SessionScope setter missing in " + clazz.getName());
+                    }
+                }
+
+                if (clazz.isAnnotationPresent(InjectRequestScope.class)) {
+                    try {
+                        Method m = clazz.getMethod("setRequestScope", RequestScope.class);
+                        RequestScope rs = new RequestScope();
+                        rs.setRequest(request);
+                        m.invoke(controller, rs);
+                    } catch (Exception e) {
+                        System.out.println("RequestScope setter missing in " + clazz.getName());
+                    }
+                }
+
+                if (clazz.isAnnotationPresent(InjectApplicationDirectory.class)) {
+                    try {
+                        Method m = clazz.getMethod("setApplicationDirectory", ApplicationDirectory.class);
+                        String realPath = getServletContext().getRealPath("/");
+                        ApplicationDirectory ad = new ApplicationDirectory(realPath);
+                        m.invoke(controller, ad);
+                    } catch (Exception e) {
+                        System.out.println("ApplicationDirectory setter missing in " + clazz.getName());
+                    }
+                }
                 
                 // Invoke the mapped method
                 Object result = service.getService().invoke(controller);
