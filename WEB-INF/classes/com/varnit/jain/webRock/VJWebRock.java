@@ -59,50 +59,31 @@ public class VJWebRock extends HttpServlet {
                 Object controller = service.getServiceClass().getDeclaredConstructor().newInstance();
                 Class<?> clazz = service.getServiceClass();
 
-                // Phase 5: Scope Injection
-                if (clazz.isAnnotationPresent(InjectApplicationScope.class)) {
+                // Phase 11: Security Layer (@SecuredAccess)
+                if (clazz.isAnnotationPresent(SecuredAccess.class)) {
+                    SecuredAccess sa = clazz.getAnnotation(SecuredAccess.class);
+                    String secClassName = sa.checkPost();
+                    String guardMethodName = sa.guard();
+
                     try {
-                        Method m = clazz.getMethod("setApplicationScope", ApplicationScope.class);
-                        ApplicationScope as = new ApplicationScope();
-                        as.setServletContext(getServletContext());
-                        m.invoke(controller, as);
+                        Class<?> secClass = Class.forName(secClassName);
+                        Object secObj = secClass.getDeclaredConstructor().newInstance();
+
+                        // Perform Scope Injection for Security Class
+                        injectScopes(secObj, secClass, request);
+
+                        // Invoke Guard Method (no parameters)
+                        Method guardMethod = secClass.getMethod(guardMethodName);
+                        guardMethod.invoke(secObj);
                     } catch (Exception e) {
-                        System.out.println("ApplicationScope setter missing in " + clazz.getName());
+                        System.out.println("Security check failed: " + e.getMessage());
+                        response.sendError(HttpServletResponse.SC_NOT_FOUND, "Unauthorized Access (Security Guard rejected)");
+                        return;
                     }
                 }
 
-                if (clazz.isAnnotationPresent(InjectSessionScope.class)) {
-                    try {
-                        Method m = clazz.getMethod("setSessionScope", SessionScope.class);
-                        SessionScope ss = new SessionScope();
-                        ss.setSession(request.getSession());
-                        m.invoke(controller, ss);
-                    } catch (Exception e) {
-                        System.out.println("SessionScope setter missing in " + clazz.getName());
-                    }
-                }
-
-                if (clazz.isAnnotationPresent(InjectRequestScope.class)) {
-                    try {
-                        Method m = clazz.getMethod("setRequestScope", RequestScope.class);
-                        RequestScope rs = new RequestScope();
-                        rs.setRequest(request);
-                        m.invoke(controller, rs);
-                    } catch (Exception e) {
-                        System.out.println("RequestScope setter missing in " + clazz.getName());
-                    }
-                }
-
-                if (clazz.isAnnotationPresent(InjectApplicationDirectory.class)) {
-                    try {
-                        Method m = clazz.getMethod("setApplicationDirectory", ApplicationDirectory.class);
-                        String realPath = getServletContext().getRealPath("/");
-                        ApplicationDirectory ad = new ApplicationDirectory(realPath);
-                        m.invoke(controller, ad);
-                    } catch (Exception e) {
-                        System.out.println("ApplicationDirectory setter missing in " + clazz.getName());
-                    }
-                }
+                // Phase 5: Scope Injection (Refactored to use helper)
+                injectScopes(controller, clazz, request);
 
                 // Phase 6: Named @AutoWired Field Injection
                 List<Field> autoFields = service.getAutoWiredFields();
@@ -326,6 +307,52 @@ public class VJWebRock extends HttpServlet {
         } else {
             System.out.println("VJWebRock: No mapping found for " + pathInfo);
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Service not found");
+        }
+    }
+    
+    private void injectScopes(Object target, Class<?> clazz, HttpServletRequest request) {
+        if (clazz.isAnnotationPresent(InjectApplicationScope.class)) {
+            try {
+                Method m = clazz.getMethod("setApplicationScope", ApplicationScope.class);
+                ApplicationScope as = new ApplicationScope();
+                as.setServletContext(getServletContext());
+                m.invoke(target, as);
+            } catch (Exception e) {
+                System.out.println("ApplicationScope setter missing in " + clazz.getName());
+            }
+        }
+
+        if (clazz.isAnnotationPresent(InjectSessionScope.class)) {
+            try {
+                Method m = clazz.getMethod("setSessionScope", SessionScope.class);
+                SessionScope ss = new SessionScope();
+                ss.setSession(request.getSession());
+                m.invoke(target, ss);
+            } catch (Exception e) {
+                System.out.println("SessionScope setter missing in " + clazz.getName());
+            }
+        }
+
+        if (clazz.isAnnotationPresent(InjectRequestScope.class)) {
+            try {
+                Method m = clazz.getMethod("setRequestScope", RequestScope.class);
+                RequestScope rs = new RequestScope();
+                rs.setRequest(request);
+                m.invoke(target, rs);
+            } catch (Exception e) {
+                System.out.println("RequestScope setter missing in " + clazz.getName());
+            }
+        }
+
+        if (clazz.isAnnotationPresent(InjectApplicationDirectory.class)) {
+            try {
+                Method m = clazz.getMethod("setApplicationDirectory", ApplicationDirectory.class);
+                String realPath = getServletContext().getRealPath("/");
+                ApplicationDirectory ad = new ApplicationDirectory(realPath);
+                m.invoke(target, ad);
+            } catch (Exception e) {
+                System.out.println("ApplicationDirectory setter missing in " + clazz.getName());
+            }
         }
     }
 }
