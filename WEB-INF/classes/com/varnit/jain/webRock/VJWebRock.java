@@ -135,6 +135,59 @@ public class VJWebRock extends HttpServlet {
                     }
                 }
 
+                // Phase 8: Class-level @InjectRequestParameter injection
+                List<Field> injectFields = service.getInjectRequestParameterFields();
+                if (injectFields != null) {
+                    for (Field field : injectFields) {
+                        try {
+                            InjectRequestParameter irp = field.getAnnotation(InjectRequestParameter.class);
+                            String paramName = irp.value();
+                            String value = request.getParameter(paramName);
+                            
+                            Class<?> type = field.getType();
+                            Object convertedValue = null;
+
+                            if (value != null) {
+                                try {
+                                    if (type == int.class || type == Integer.class)
+                                        convertedValue = Integer.parseInt(value);
+                                    else if (type == double.class || type == Double.class)
+                                        convertedValue = Double.parseDouble(value);
+                                    else if (type == float.class || type == Float.class)
+                                        convertedValue = Float.parseFloat(value);
+                                    else if (type == long.class || type == Long.class)
+                                        convertedValue = Long.parseLong(value);
+                                    else if (type == boolean.class || type == Boolean.class)
+                                        convertedValue = Boolean.parseBoolean(value);
+                                    else if (type == char.class || type == Character.class) {
+                                        if (value.length() > 0)
+                                            convertedValue = value.charAt(0);
+                                        else
+                                            System.out.println("Empty char for: " + paramName);
+                                    } else if (type == String.class)
+                                        convertedValue = value;
+                                    else
+                                        System.out.println("Unsupported type: " + type.getName());
+                                } catch (Exception e) {
+                                    System.out.println("Conversion error for: " + paramName + " in class " + clazz.getName());
+                                }
+                            }
+
+                            // Construct setter name
+                            String fieldName = field.getName();
+                            String setterName = "set" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+                            try {
+                                Method setter = clazz.getMethod(setterName, type);
+                                setter.invoke(controller, convertedValue);
+                            } catch (NoSuchMethodException e) {
+                                System.out.println("Setter not found for field: " + fieldName + " in " + clazz.getName());
+                            }
+                        } catch (Exception e) {
+                            System.out.println("Error in @InjectRequestParameter injection: " + e.getMessage());
+                        }
+                    }
+                }
+
                 // Phase 7: @RequestParameter Method Parameter Binding
                 Method method = service.getService();
                 java.lang.reflect.Parameter[] parameters = method.getParameters();

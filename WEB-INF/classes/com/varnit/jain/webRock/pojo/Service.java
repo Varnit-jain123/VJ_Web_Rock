@@ -14,6 +14,7 @@ public class Service {
     private boolean runOnStartup;
     private int priority;
     private List<Field> autoWiredFields;
+    private List<Field> injectRequestParameterFields;
 
     public Service() {}
 
@@ -87,5 +88,13 @@ public class Service {
 
     public void setAutoWiredFields(List<Field> autoWiredFields) {
         this.autoWiredFields = autoWiredFields;
+    }
+
+    public List<Field> getInjectRequestParameterFields() {
+        return injectRequestParameterFields;
+    }
+
+    public void setInjectRequestParameterFields(List<Field> injectRequestParameterFields) {
+        this.injectRequestParameterFields = injectRequestParameterFields;
     }
 }

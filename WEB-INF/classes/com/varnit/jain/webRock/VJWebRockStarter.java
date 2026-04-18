@@ -17,6 +17,7 @@ import com.varnit.jain.webRock.annotations.GET;
 import com.varnit.jain.webRock.annotations.POST;
 import com.varnit.jain.webRock.annotations.FORWARD;
 import com.varnit.jain.webRock.annotations.OnStartup;
+import com.varnit.jain.webRock.annotations.InjectRequestParameter;
 import com.varnit.jain.webRock.model.webRockModel;
 import com.varnit.jain.webRock.pojo.Service;
 
@@ -131,6 +132,15 @@ public class VJWebRockStarter extends HttpServlet {
                                         }
                                     }
                                     service.setAutoWiredFields(autoList);
+
+                                    // Phase 8: Scan for @InjectRequestParameter fields
+                                    List<Field> paramList = new ArrayList<>();
+                                    for (Field field : fields) {
+                                        if (field.isAnnotationPresent(InjectRequestParameter.class)) {
+                                            paramList.add(field);
+                                        }
+                                    }
+                                    service.setInjectRequestParameterFields(paramList);
 
                                     model.getMap().put(finalPath, service);
                                     System.out.println("VJWebRock: Mapped " + finalPath + " -> " + className + "." + method.getName() + " [GET=" + isGetAllowed + ", POST=" + isPostAllowed + "]");
