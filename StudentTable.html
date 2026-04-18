@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Student CRUD</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: white;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .box {
+            border: 1px solid black;
+            padding: 15px;
+            margin: 10px;
+            width: 250px;
+        }
+
+        input {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        button {
+            width: 100%;
+        }
+
+        #output {
+            border: 1px solid black;
+            padding: 10px;
+            margin: 15px;
+            height: 120px;
+            overflow: auto;
+        }
+    </style>
+
+
+    <script src="jQuery/jquery.js"></script>
+
+    <script src="Student.js"></script>
+
+</head>
+
+<body>
+
+    <h2>Student CRUD</h2>
+
+    <div class="container">
+
+        <div class="box">
+            <h3>Add</h3>
+            <input id="r1" placeholder="Roll">
+            <input id="n1" placeholder="Name">
+            <input id="g1" placeholder="Gender">
+            <button onclick="add()">Add</button>
+        </div>
+
+        <div class="box">
+            <h3>Update</h3>
+            <input id="r2" placeholder="Roll">
+            <input id="n2" placeholder="Name">
+            <input id="g2" placeholder="Gender">
+            <button onclick="update()">Update</button>
+        </div>
+
+        <div class="box">
+            <h3>Delete</h3>
+            <input id="r3" placeholder="Roll">
+            <button onclick="del()">Delete</button>
+        </div>
+
+        <div class="box">
+            <h3>Get By</h3>
+            <input id="r4" placeholder="Roll">
+            <button onclick="getBy()">Get</button>
+        </div>
+
+        <div class="box">
+            <h3>Get All</h3>
+            <button onclick="getAll()">Get All</button>
+        </div>
+
+    </div>
+
+    <h3>Output</h3>
+    <div id="output"></div>
+
+</body>
+
+</html>

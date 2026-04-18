@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Simple Calculator</title>
+
+    <!-- Load generated JS -->
+    <script src="js/abcd.js"></script>
+</head>
+
+<body>
+
+    <h2>Calculator</h2>
+
+    A: <input type="number" id="numA"><br><br>
+    B: <input type="number" id="numB"><br><br>
+
+    <button onclick="calculate()">Add</button>
+
+    <h3 id="result"></h3>
+
+    <script>
+        const calc = new CalculatorService();
+
+        function calculate() {
+            let a = document.getElementById("numA").value;
+            let b = document.getElementById("numB").value;
+
+            calc.add({ a: a, b: b })
+                .then(res => {
+                    document.getElementById("result").innerText = res;
+                })
+                .catch(err => {
+                    document.getElementById("result").innerText = "Error";
+                });
+        }
+    </script>
+
+</body>
+
+</html>

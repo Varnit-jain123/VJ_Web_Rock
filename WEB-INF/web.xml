@@ -31,5 +31,29 @@
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
+    <!-- 
+    <context-param>
+        <param-name>JsFile</param-name>
+        <param-value>abcd.js</param-value>
+    </context-param>
+    -->
+
+    <!-- JS Generator Servlet (Starts after VJWebRockStarter) -->
+    <servlet>
+        <servlet-name>JSGenerator</servlet-name>
+        <servlet-class>com.varnit.jain.webRock.JSGeneratorServlet</servlet-class>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+
+    <!-- JS Loader Servlet -->
+    <servlet>
+        <servlet-name>JSLoader</servlet-name>
+        <servlet-class>com.varnit.jain.webRock.JSLoaderServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>JSLoader</servlet-name>
+        <url-pattern>/js/*</url-pattern>
+    </servlet-mapping>
 
 </web-app>
