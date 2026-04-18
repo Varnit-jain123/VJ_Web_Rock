@@ -294,9 +294,19 @@ public class VJWebRock extends HttpServlet {
                     }
                 } else {
                     // Normal response
-                    response.setContentType("text/html");
-                    PrintWriter out = response.getWriter();
-                    out.print(result != null ? result.toString() : "");
+                    if (result == null) {
+                        response.setContentType("text/html");
+                        response.getWriter().print("");
+                    } else if (result instanceof String) {
+                        response.setContentType("text/html");
+                        response.getWriter().print(result.toString());
+                    } else {
+                        // Phase 13: JSON Response Serialization
+                        response.setContentType("application/json");
+                        Gson gson = new Gson();
+                        String jsonResponse = gson.toJson(result);
+                        response.getWriter().print(jsonResponse);
+                    }
                 }
                 
             } catch (Exception e) {
