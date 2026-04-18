@@ -11,6 +11,8 @@ import com.varnit.jain.webRock.pojo.Service;
 import com.varnit.jain.webRock.scope.*;
 import com.varnit.jain.webRock.annotations.*;
 import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+import java.util.List;
 
 public class VJWebRock extends HttpServlet {
     
@@ -97,6 +99,39 @@ public class VJWebRock extends HttpServlet {
                         m.invoke(controller, ad);
                     } catch (Exception e) {
                         System.out.println("ApplicationDirectory setter missing in " + clazz.getName());
+                    }
+                }
+
+                // Phase 6: Named @AutoWired Field Injection
+                List<Field> autoFields = service.getAutoWiredFields();
+                if (autoFields != null) {
+                    for (Field field : autoFields) {
+                        try {
+                            field.setAccessible(true);
+                            AutoWired aw = field.getAnnotation(AutoWired.class);
+                            String name = aw.name();
+                            
+                            Object value = request.getAttribute(name);
+                            if (value == null) {
+                                javax.servlet.http.HttpSession session = request.getSession(false);
+                                if (session != null) value = session.getAttribute(name);
+                            }
+                            if (value == null) {
+                                value = getServletContext().getAttribute(name);
+                            }
+
+                            if (value != null) {
+                                if (field.getType().isAssignableFrom(value.getClass())) {
+                                    field.set(controller, value);
+                                } else {
+                                    System.out.println("Type mismatch for field: " + field.getName() + " in " + clazz.getName() + ". Expected " + field.getType().getName() + " but found " + value.getClass().getName());
+                                }
+                            } else {
+                                field.set(controller, null);
+                            }
+                        } catch (Exception e) {
+                            System.out.println("Error in @AutoWired injection for field " + field.getName() + ": " + e.getMessage());
+                        }
                     }
                 }
                 

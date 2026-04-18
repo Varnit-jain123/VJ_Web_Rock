@@ -2,6 +2,9 @@ package com.varnit.jain.webRock;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -118,7 +121,17 @@ public class VJWebRockStarter extends HttpServlet {
                                     if (method.isAnnotationPresent(FORWARD.class)) {
                                         service.setForwardTo(method.getAnnotation(FORWARD.class).value());
                                     }
-                                    
+
+                                    // Phase 6: Scan for @AutoWired fields
+                                    Field[] fields = clazz.getDeclaredFields();
+                                    List<Field> autoList = new ArrayList<>();
+                                    for (Field field : fields) {
+                                        if (field.isAnnotationPresent(com.varnit.jain.webRock.annotations.AutoWired.class)) {
+                                            autoList.add(field);
+                                        }
+                                    }
+                                    service.setAutoWiredFields(autoList);
+
                                     model.getMap().put(finalPath, service);
                                     System.out.println("VJWebRock: Mapped " + finalPath + " -> " + className + "." + method.getName() + " [GET=" + isGetAllowed + ", POST=" + isPostAllowed + "]");
                                 }

@@ -1,6 +1,8 @@
 package com.varnit.jain.webRock.pojo;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+import java.util.List;
 
 public class Service {
     private Class serviceClass;
@@ -11,6 +13,7 @@ public class Service {
     private String forwardTo;
     private boolean runOnStartup;
     private int priority;
+    private List<Field> autoWiredFields;
 
     public Service() {}
 
@@ -76,5 +79,13 @@ public class Service {
 
     public void setService(Method service) {
         this.service = service;
+    }
+
+    public List<Field> getAutoWiredFields() {
+        return autoWiredFields;
+    }
+
+    public void setAutoWiredFields(List<Field> autoWiredFields) {
+        this.autoWiredFields = autoWiredFields;
     }
 }
