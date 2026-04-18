@@ -134,9 +134,54 @@ public class VJWebRock extends HttpServlet {
                         }
                     }
                 }
+
+                // Phase 7: @RequestParameter Method Parameter Binding
+                Method method = service.getService();
+                java.lang.reflect.Parameter[] parameters = method.getParameters();
+                Object[] args = new Object[parameters.length];
+
+                for (int i = 0; i < parameters.length; i++) {
+                    java.lang.reflect.Parameter param = parameters[i];
+                    if (param.isAnnotationPresent(RequestParameter.class)) {
+                        RequestParameter rp = param.getAnnotation(RequestParameter.class);
+                        String paramName = rp.value();
+                        String value = request.getParameter(paramName);
+                        Class<?> type = param.getType();
+                        Object convertedValue = null;
+
+                        if (value != null) {
+                            try {
+                                if (type == int.class || type == Integer.class)
+                                    convertedValue = Integer.parseInt(value);
+                                else if (type == double.class || type == Double.class)
+                                    convertedValue = Double.parseDouble(value);
+                                else if (type == float.class || type == Float.class)
+                                    convertedValue = Float.parseFloat(value);
+                                else if (type == long.class || type == Long.class)
+                                    convertedValue = Long.parseLong(value);
+                                else if (type == boolean.class || type == Boolean.class)
+                                    convertedValue = Boolean.parseBoolean(value);
+                                else if (type == char.class || type == Character.class) {
+                                    if (value.length() > 0)
+                                        convertedValue = value.charAt(0);
+                                    else
+                                        System.out.println("Empty value for char parameter: " + paramName);
+                                } else if (type == String.class)
+                                    convertedValue = value;
+                                else
+                                    System.out.println("Unsupported type: " + type.getName());
+                            } catch (Exception e) {
+                                System.out.println("Conversion error for parameter: " + paramName + " to type " + type.getName());
+                            }
+                        }
+                        args[i] = convertedValue;
+                    } else {
+                        args[i] = null;
+                    }
+                }
                 
-                // Invoke the mapped method
-                Object result = service.getService().invoke(controller);
+                // Invoke the mapped method with arguments
+                Object result = method.invoke(controller, args);
                 
                 if (service.getForwardTo() != null) {
                     String forwardPath = service.getForwardTo();
