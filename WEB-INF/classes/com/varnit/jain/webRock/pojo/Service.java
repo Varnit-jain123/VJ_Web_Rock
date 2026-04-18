@@ -9,8 +9,26 @@ public class Service {
     private boolean isGetAllowed;
     private boolean isPostAllowed;
     private String forwardTo;
+    private boolean runOnStartup;
+    private int priority;
 
     public Service() {}
+
+    public boolean getRunOnStartup() {
+        return runOnStartup;
+    }
+
+    public void setRunOnStartup(boolean runOnStartup) {
+        this.runOnStartup = runOnStartup;
+    }
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
 
     public String getForwardTo() {
         return forwardTo;

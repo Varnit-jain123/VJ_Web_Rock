@@ -2,6 +2,8 @@ package com.varnit.jain.webRock;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -11,6 +13,7 @@ import com.varnit.jain.webRock.annotations.Path;
 import com.varnit.jain.webRock.annotations.GET;
 import com.varnit.jain.webRock.annotations.POST;
 import com.varnit.jain.webRock.annotations.FORWARD;
+import com.varnit.jain.webRock.annotations.OnStartup;
 import com.varnit.jain.webRock.model.webRockModel;
 import com.varnit.jain.webRock.pojo.Service;
 
@@ -37,20 +40,32 @@ public class VJWebRockStarter extends HttpServlet {
 
         File classesDir = new File(realPath);
         webRockModel model = new webRockModel();
+        ArrayList<Service> startupList = new ArrayList<>();
         
-        scanAndRegister(classesDir, classesDir, packagePrefix, model);
+        scanAndRegister(classesDir, classesDir, packagePrefix, model, startupList);
+        
+        // Phase 4: Handle Startup Lifecyle
+        Collections.sort(startupList, (a, b) -> a.getPriority() - b.getPriority());
+        for (Service s : startupList) {
+            try {
+                Object obj = s.getServiceClass().getDeclaredConstructor().newInstance();
+                s.getService().invoke(obj);
+            } catch (Exception e) {
+                System.out.println("Error executing @OnStartup: " + e.getMessage());
+            }
+        }
         
         context.setAttribute("webRockModel", model);
         System.out.println("VJWebRock Framework: Initialization Complete. " + model.getMap().size() + " services mapped.");
     }
 
-    private void scanAndRegister(File root, File current, String prefix, webRockModel model) {
+    private void scanAndRegister(File root, File current, String prefix, webRockModel model, ArrayList<Service> startupList) {
         File[] files = current.listFiles();
         if (files == null) return;
 
         for (File file : files) {
             if (file.isDirectory()) {
-                scanAndRegister(root, file, prefix, model);
+                scanAndRegister(root, file, prefix, model, startupList);
             } else if (file.getName().endsWith(".class")) {
                 String fullPath = file.getAbsolutePath();
                 String rootPath = root.getAbsolutePath();
@@ -106,6 +121,21 @@ public class VJWebRockStarter extends HttpServlet {
                                     
                                     model.getMap().put(finalPath, service);
                                     System.out.println("VJWebRock: Mapped " + finalPath + " -> " + className + "." + method.getName() + " [GET=" + isGetAllowed + ", POST=" + isPostAllowed + "]");
+                                }
+
+                                if (method.isAnnotationPresent(OnStartup.class)) {
+                                    if (method.getReturnType() != void.class || method.getParameterCount() != 0) {
+                                        System.out.println("Invalid @OnStartup method: " + method.getName() + " in class " + clazz.getName());
+                                        continue;
+                                    }
+
+                                    OnStartup os = method.getAnnotation(OnStartup.class);
+                                    Service startupService = new Service();
+                                    startupService.setServiceClass(clazz);
+                                    startupService.setService(method);
+                                    startupService.setRunOnStartup(true);
+                                    startupService.setPriority(os.priority());
+                                    startupList.add(startupService);
                                 }
                             }
                         }
