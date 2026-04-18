@@ -19,59 +19,78 @@ public class JSGeneratorServlet extends HttpServlet {
         
         ServletContext context = config.getServletContext();
         String jsFileName = context.getInitParameter("JsFile");
-        if (jsFileName == null) jsFileName = "vjwebrock_proxy.js";
-
+        
         String jsDirPath = context.getRealPath("/WEB-INF/js");
         File jsDir = new File(jsDirPath);
         if (!jsDir.exists()) jsDir.mkdirs();
 
-        File jsFile = new File(jsDir, jsFileName);
-        
-        try (FileWriter fw = new FileWriter(jsFile)) {
-            webRockModel model = (webRockModel) context.getAttribute("webRockModel");
-            String packagePrefix = context.getInitParameter("SERVICE_PACKAGE_PREFIX");
-            if (packagePrefix == null) packagePrefix = "";
+        webRockModel model = (webRockModel) context.getAttribute("webRockModel");
+        String packagePrefix = context.getInitParameter("SERVICE_PACKAGE_PREFIX");
+        if (packagePrefix == null) packagePrefix = "";
 
-            String classesPath = context.getRealPath("/WEB-INF/classes");
-            File classesDir = new File(classesPath);
+        String classesPath = context.getRealPath("/WEB-INF/classes");
+        File classesDir = new File(classesPath);
 
-            StringBuilder jsCode = new StringBuilder();
-            jsCode.append("// VJWebRock Auto-Generated Proxy SDK\n\n");
+        // Map ClassName -> JS Content
+        Map<String, String> pojoMap = new HashMap<>();
+        Map<String, String> proxyMap = new HashMap<>();
 
-            // 1. Scan for POJOs and generate JS classes
-            generatePOJOs(classesDir, classesDir, packagePrefix, jsCode);
+        collectPOJOs(classesDir, classesDir, packagePrefix, pojoMap);
+        collectProxies(model, proxyMap);
 
-            // 2. Generate Service Proxies from Model
-            generateServiceProxies(model, jsCode);
+        if (jsFileName != null && !jsFileName.trim().isEmpty()) {
+            // Case A: Aggregate Mode
+            System.out.println("JSGenerator: Aggregate mode enabled. Creating " + jsFileName);
+            File jsFile = new File(jsDir, jsFileName);
+            try (FileWriter fw = new FileWriter(jsFile)) {
+                fw.write("// VJWebRock Auto-Generated Proxy SDK (Aggregate)\n\n");
+                for (String code : pojoMap.values()) fw.write(code);
+                for (String code : proxyMap.values()) fw.write(code);
+            } catch (IOException e) { e.printStackTrace(); }
+        } else {
+            // Case B: Modular Mode
+            System.out.println("JSGenerator: Modular mode enabled. Creating individual files.");
+            for (Map.Entry<String, String> entry : pojoMap.entrySet()) {
+                writeIndividualFile(jsDir, entry.getKey(), entry.getValue());
+            }
+            for (Map.Entry<String, String> entry : proxyMap.entrySet()) {
+                writeIndividualFile(jsDir, entry.getKey(), entry.getValue());
+            }
+        }
+    }
 
-            fw.write(jsCode.toString());
-            System.out.println("JSGenerator: Successfully generated " + jsFileName + " at " + jsFile.getAbsolutePath());
-        } catch (Exception e) {
-            System.err.println("JSGenerator: Error during generation");
+    private void writeIndividualFile(File dir, String className, String content) {
+        File file = new File(dir, className + ".js");
+        try (FileWriter fw = new FileWriter(file)) {
+            fw.write("// VJWebRock Auto-Generated Proxy (" + className + ")\n\n");
+            fw.write(content);
+        } catch (IOException e) {
+            System.err.println("Error writing " + file.getName());
             e.printStackTrace();
         }
     }
 
-    private void generatePOJOs(File root, File current, String prefix, StringBuilder jsCode) {
+    private void collectPOJOs(File root, File current, String prefix, Map<String, String> map) {
         File[] files = current.listFiles();
         if (files == null) return;
 
         for (File file : files) {
             if (file.isDirectory()) {
-                generatePOJOs(root, file, prefix, jsCode);
+                collectPOJOs(root, file, prefix, map);
             } else if (file.getName().endsWith(".class")) {
                 String className = getClassName(root, file);
                 if (className.startsWith(prefix)) {
                     try {
                         Class<?> clazz = Class.forName(className);
-                        // POJOs are classes without @Path and aren't framework internal
                         if (!clazz.isAnnotationPresent(Path.class) && !className.contains("com.varnit.jain.webRock")) {
-                            jsCode.append("class ").append(clazz.getSimpleName()).append(" {\n");
-                            jsCode.append("  constructor() {\n");
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("class ").append(clazz.getSimpleName()).append(" {\n");
+                            sb.append("  constructor() {\n");
                             for (Field field : clazz.getDeclaredFields()) {
-                                jsCode.append("    this.").append(field.getName()).append(" = ").append(getDefaultValue(field.getType())).append(";\n");
+                                sb.append("    this.").append(field.getName()).append(" = ").append(getDefaultValue(field.getType())).append(";\n");
                             }
-                            jsCode.append("  }\n}\n\n");
+                            sb.append("  }\n}\n\n");
+                            map.put(clazz.getSimpleName(), sb.toString());
                         }
                     } catch (Exception e) {}
                 }
@@ -79,10 +98,8 @@ public class JSGeneratorServlet extends HttpServlet {
         }
     }
 
-    private void generateServiceProxies(webRockModel model, StringBuilder jsCode) {
+    private void collectProxies(webRockModel model, Map<String, String> map) {
         if (model == null) return;
-        
-        // Group services by class
         Map<Class<?>, List<Service>> grouped = new HashMap<>();
         for (Service s : model.getMap().values()) {
             grouped.computeIfAbsent(s.getServiceClass(), k -> new ArrayList<>()).add(s);
@@ -90,41 +107,41 @@ public class JSGeneratorServlet extends HttpServlet {
 
         for (Map.Entry<Class<?>, List<Service>> entry : grouped.entrySet()) {
             Class<?> clazz = entry.getKey();
-            jsCode.append("class ").append(clazz.getSimpleName()).append(" {\n");
+            StringBuilder sb = new StringBuilder();
+            sb.append("class ").append(clazz.getSimpleName()).append(" {\n");
 
             for (Service s : entry.getValue()) {
                 Method m = s.getService();
                 String path = s.getPath();
-                boolean isPost = s.isPostAllowed() && !s.isGetAllowed(); // Heuristic: prefer POST if both
-                // In our framework, if both allowed, we might default to GET. But if @POST present, use fetch POST.
+                boolean isPost = s.isPostAllowed() && !s.isGetAllowed();
                 if (m.isAnnotationPresent(POST.class)) isPost = true;
 
-                jsCode.append("  ").append(m.getName()).append("(data) {\n");
-                jsCode.append("    let url = 'schoolService").append(path.startsWith("/") ? "" : "/").append(path).append("';\n");
+                sb.append("  ").append(m.getName()).append("(data) {\n");
+                sb.append("    let url = 'schoolService").append(path.startsWith("/") ? "" : "/").append(path).append("';\n");
                 if (!isPost) {
-                    jsCode.append("    if (data) {\n");
-                    jsCode.append("      let params = new URLSearchParams(data).toString();\n");
-                    jsCode.append("      if (params) url += '?' + params;\n");
-                    jsCode.append("    }\n");
+                    sb.append("    if (data) {\n");
+                    sb.append("      let params = new URLSearchParams(data).toString();\n");
+                    sb.append("      if (params) url += '?' + params;\n");
+                    sb.append("    }\n");
                 }
-                jsCode.append("    return fetch(url, {\n");
-                jsCode.append("      method: '").append(isPost ? "POST" : "GET").append("'");
+                sb.append("    return fetch(url, {\n");
+                sb.append("      method: '").append(isPost ? "POST" : "GET").append("'");
                 if (isPost) {
-                    jsCode.append(",\n      headers: {'Content-Type': 'application/json'},\n");
-                    jsCode.append("      body: JSON.stringify(data)\n");
+                    sb.append(",\n      headers: {'Content-Type': 'application/json'},\n");
+                    sb.append("      body: JSON.stringify(data)\n");
                 } else {
-                    jsCode.append("\n");
+                    sb.append("\n");
                 }
                 
-                // Smart response handling based on return type
                 if (m.getReturnType() == String.class) {
-                    jsCode.append("    }).then(r => r.text());\n");
+                    sb.append("    }).then(r => r.text());\n");
                 } else {
-                    jsCode.append("    }).then(r => r.json());\n");
+                    sb.append("    }).then(r => r.json());\n");
                 }
-                jsCode.append("  }\n\n");
+                sb.append("  }\n\n");
             }
-            jsCode.append("}\n\n");
+            sb.append("}\n\n");
+            map.put(clazz.getSimpleName(), sb.toString());
         }
     }
 
