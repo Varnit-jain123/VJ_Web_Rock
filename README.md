@@ -1,6 +1,13 @@
-# VJWebRock Framework 
+# VJWebRock Framework
 
-**VJWebRock** is a lightweight, high-performance Java Web Framework designed to simplify server-side development with a modern, annotation-driven approach. It implements a robust **Front Controller** pattern, automated dependency injection, and a built-in **JavaScript Proxy SDK** generator.
+**VJWebRock** is a lightweight, high-performance Java Web Framework designed to simplify server-side development with a modern, annotation-driven approach.
+
+### Industry Standard Patterns
+VJWebRock implements proven architectural patterns used by industry-leading frameworks:
+- **Front Controller Pattern**: Similar to **Spring MVC** and **Struts 2**.
+- **Dependency Injection (DI)**: Inspired by the **Spring Framework** and **Google Guice**.
+- **Annotation Routing**: Comparable to **JAX-RS (Jersey)** and **Spring Boot**.
+- **Automated SDK Generation**: Mirrors the functionality of **OpenAPI/Swagger** and **GraphQL** codegen tools.
 
 ---
 
@@ -33,8 +40,29 @@
 - **Guards**: Secure your service classes with `@SecuredAccess`, specifying a `Guard` class and method to validate requests before they reach your logic.
 
 ### 7.  JavaScript Proxy SDK
-- **Zero-Config Client**: The framework automatically generates a JavaScript SDK that mirrors your server-side services.
-- **Easy Integration**: Call server-side methods as if they were local JavaScript functions.
+- **Zero-Config Client**: The framework automatically generates a JavaScript SDK (`vj-webrock.js`) that mirrors your server-side services.
+- **Easy Integration**: Call server-side methods as if they were local JavaScript functions with full `fetch` and `Promise` support.
+
+---
+
+## 📈 The Evolution of VJWebRock
+
+Following a rigorous architectural timeline, the framework has evolved through 13 distinct development phases:
+
+| Phase | Milestone | Description |
+| :--- | :--- | :--- |
+| **Initial** | **Core Foundation** | Established Reflection-based annotation processing and basic class loading. |
+| **2nd** | **Basic Routing** | Implemented the Front Controller and mapped paths to Controller classes. |
+| **3rd** | **Forwarding** | Added the `@FORWARD` annotation for seamless server-side redirection. |
+| **4th** | **Lifecycle Hooks** | Introduced `@OnStartup` for prioritized initialization logic. |
+| **5th** | **Scope Injection** | Dedicated support for Request, Session, and Application scope management. |
+| **6th** | **Auto-Wiring** | Built the Dependency Injection engine using the `@AutoWired` annotation. |
+| **7th** | **Method Binding** | Mapping of request parameters directly to method arguments. |
+| **9th** | **Class Binding** | Intelligent `@InjectRequestParameter` at the class field level. |
+| **10th** | **JSON Inbound** | Integrated GSON for automated request body to POJO conversion. |
+| **11th** | **Security Layer** | Multi-level security using `@SecuredAccess` and custom `Guard` classes. |
+| **12th** | **JSON Outbound** | Automated serialization of Java return types to standard JSON responses. |
+| **13th** | **Proxy SDK Gen** | **Zero-Config JavaScript Proxy SDK Generation for client-side integration.** |
 
 ---
 

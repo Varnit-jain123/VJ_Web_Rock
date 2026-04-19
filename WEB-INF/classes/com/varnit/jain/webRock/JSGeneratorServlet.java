@@ -16,17 +16,19 @@ public class JSGeneratorServlet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         System.out.println("JSGenerator: Starting JS Proxy Generation...");
-        
+
         ServletContext context = config.getServletContext();
         String jsFileName = context.getInitParameter("JsFile");
-        
+
         String jsDirPath = context.getRealPath("/WEB-INF/js");
         File jsDir = new File(jsDirPath);
-        if (!jsDir.exists()) jsDir.mkdirs();
+        if (!jsDir.exists())
+            jsDir.mkdirs();
 
         webRockModel model = (webRockModel) context.getAttribute("webRockModel");
         String packagePrefix = context.getInitParameter("SERVICE_PACKAGE_PREFIX");
-        if (packagePrefix == null) packagePrefix = "";
+        if (packagePrefix == null)
+            packagePrefix = "";
 
         String classesPath = context.getRealPath("/WEB-INF/classes");
         File classesDir = new File(classesPath);
@@ -44,9 +46,13 @@ public class JSGeneratorServlet extends HttpServlet {
             File jsFile = new File(jsDir, jsFileName);
             try (FileWriter fw = new FileWriter(jsFile)) {
                 fw.write("// VJWebRock Auto-Generated Proxy SDK (Aggregate)\n\n");
-                for (String code : pojoMap.values()) fw.write(code);
-                for (String code : proxyMap.values()) fw.write(code);
-            } catch (IOException e) { e.printStackTrace(); }
+                for (String code : pojoMap.values())
+                    fw.write(code);
+                for (String code : proxyMap.values())
+                    fw.write(code);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         } else {
             // Case B: Modular Mode
             System.out.println("JSGenerator: Modular mode enabled. Creating individual files.");
@@ -72,7 +78,8 @@ public class JSGeneratorServlet extends HttpServlet {
 
     private void collectPOJOs(File root, File current, String prefix, Map<String, String> map) {
         File[] files = current.listFiles();
-        if (files == null) return;
+        if (files == null)
+            return;
 
         for (File file : files) {
             if (file.isDirectory()) {
@@ -87,19 +94,22 @@ public class JSGeneratorServlet extends HttpServlet {
                             sb.append("class ").append(clazz.getSimpleName()).append(" {\n");
                             sb.append("  constructor() {\n");
                             for (Field field : clazz.getDeclaredFields()) {
-                                sb.append("    this.").append(field.getName()).append(" = ").append(getDefaultValue(field.getType())).append(";\n");
+                                sb.append("    this.").append(field.getName()).append(" = ")
+                                        .append(getDefaultValue(field.getType())).append(";\n");
                             }
                             sb.append("  }\n}\n\n");
                             map.put(clazz.getSimpleName(), sb.toString());
                         }
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                 }
             }
         }
     }
 
     private void collectProxies(webRockModel model, Map<String, String> map) {
-        if (model == null) return;
+        if (model == null)
+            return;
         Map<Class<?>, List<Service>> grouped = new HashMap<>();
         for (Service s : model.getMap().values()) {
             grouped.computeIfAbsent(s.getServiceClass(), k -> new ArrayList<>()).add(s);
@@ -114,10 +124,12 @@ public class JSGeneratorServlet extends HttpServlet {
                 Method m = s.getService();
                 String path = s.getPath();
                 boolean isPost = s.isPostAllowed() && !s.isGetAllowed();
-                if (m.isAnnotationPresent(POST.class)) isPost = true;
+                if (m.isAnnotationPresent(POST.class))
+                    isPost = true;
 
                 sb.append("  ").append(m.getName()).append("(data) {\n");
-                sb.append("    let url = 'schoolService").append(path.startsWith("/") ? "" : "/").append(path).append("';\n");
+                sb.append("    let url = 'schoolService").append(path.startsWith("/") ? "" : "/").append(path)
+                        .append("';\n");
                 if (!isPost) {
                     sb.append("    if (data) {\n");
                     sb.append("      let params = new URLSearchParams(data).toString();\n");
@@ -132,7 +144,7 @@ public class JSGeneratorServlet extends HttpServlet {
                 } else {
                     sb.append("\n");
                 }
-                
+
                 if (m.getReturnType() == String.class) {
                     sb.append("    }).then(r => r.text());\n");
                 } else {
@@ -151,9 +163,13 @@ public class JSGeneratorServlet extends HttpServlet {
     }
 
     private String getDefaultValue(Class<?> type) {
-        if (type == int.class || type == long.class || type == float.class || type == double.class || type == byte.class || type == short.class) return "0";
-        if (type == boolean.class) return "false";
-        if (type == char.class) return "'\\u0000'";
+        if (type == int.class || type == long.class || type == float.class || type == double.class || type == byte.class
+                || type == short.class)
+            return "0";
+        if (type == boolean.class)
+            return "false";
+        if (type == char.class)
+            return "'\\u0000'";
         return "''";
     }
 }

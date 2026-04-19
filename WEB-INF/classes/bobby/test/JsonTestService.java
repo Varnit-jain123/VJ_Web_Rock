@@ -23,7 +23,8 @@ public class JsonTestService {
     @GET
     public String check(SessionScope ss) {
         Student s = (Student) ss.getAttribute("lastStudent");
-        if (s == null) return "No student in session";
+        if (s == null)
+            return "No student in session";
         return "Session Student: " + s.getName() + ", Age: " + s.getAge();
     }
 }
