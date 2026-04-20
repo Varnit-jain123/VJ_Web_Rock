@@ -1,3 +1,4 @@
+package bobby.test;
 import com.varnit.jain.webRock.annotations.*;
 
 @Path("/admin")
