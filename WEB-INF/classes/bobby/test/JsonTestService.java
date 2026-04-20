@@ -9,7 +9,7 @@ public class JsonTestService {
     @Path("/add")
     @POST
     public String add(Student s) {
-        return "Received Student: " + s.getName() + ", Age: " + s.getAge();
+        return "Received Student: " + s.getName();
     }
 
     @Path("/save")
@@ -25,6 +25,6 @@ public class JsonTestService {
         Student s = (Student) ss.getAttribute("lastStudent");
         if (s == null)
             return "No student in session";
-        return "Session Student: " + s.getName() + ", Age: " + s.getAge();
+        return "Session Student: " + s.getName();
     }
 }

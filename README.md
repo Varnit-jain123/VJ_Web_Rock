@@ -43,6 +43,10 @@ VJWebRock implements proven architectural patterns used by industry-leading fram
 - **Zero-Config Client**: The framework automatically generates a JavaScript SDK (`vj-webrock.js`) that mirrors your server-side services.
 - **Easy Integration**: Call server-side methods as if they were local JavaScript functions with full `fetch` and `Promise` support.
 
+### 8.  Bobby-Powered Compilation
+- **Pre-Compilation Checks**: The framework includes an automated validation layer ("Bobby") that scans your code to ensure strict adherence to development standards.
+- **Automated Validation**: Bobby automatically verifies that all service classes and methods follow the mandatory rules before the application is considered ready for deployment.
+
 ---
 
 ## 📈 The Evolution of VJWebRock
@@ -135,12 +139,27 @@ public class DataService {
 
 ---
 
+## 🛠️ Compilation
+
+To compile your Java services and components, use the provided automation script:
+
+### Using the Build Script
+1. Open your terminal in the project root.
+2. Run the following command:
+   - **Command Prompt (CMD)**: `compile`
+   - **PowerShell**: `.\compile`
+
+The script automatically handles dependencies for **Servlet API**, **GSON**, **MySQL**, and the **VJWebRock Framework**, ensuring all `.class` files are generated correctly.
+
+---
+
 ##  Getting Started
 
 1.  **Project Structure**: Place your services in the package defined in `web.xml` .
 2.  **Deployment**: Deploy the project to **Tomcat 9**.
 3.  **SDK Access**: Visit `/js/` or the configured JS route to download your auto-generated Proxy SDK.
-4.  **Documentation**: Run `ServicesDoc.jar` against your `WEB-INF/classes` folder to generate your API manual.
+4.  **Compilation**: Run the `compile` script to generate your executable `.class` files.
+5.  **Documentation**: Run `ServicesDoc.jar` against your `WEB-INF/classes` folder to generate your API manual.
 
 ---
 
