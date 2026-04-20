@@ -1,100 +1,285 @@
-# VJWebRock Framework 🚀
+# VJWebRock Framework
 
-**VJWebRock** is a lightweight, high-performance Java Web Framework designed to simplify server-side development with a modern, annotation-driven approach. It implements proven architectural patterns like Front Controller, Dependency Injection, and Automated SDK generation, similar to Spring MVC and JAX-RS.
+**VJWebRock** is a lightweight, high-performance Java web framework designed to simplify server-side development using a modern, annotation-driven approach. It incorporates proven architectural patterns such as Front Controller, Dependency Injection, and automated SDK generation, similar to frameworks like Spring MVC and JAX-RS.
 
-This repository is structured as a professional library with an integrated demo application.
-
----
-
-## 📂 Repository Structure
-
-The project is organized into the following main components:
-
-- **[VJWebRock-Core](file:///c:/tomcat9/webapps/VJ_web_rock/VJWebRock-Core)**: The core framework library.
-  - `src/`: Framework source code (Annotations, Scopes, JSON binding).
-  - `make-jar.bat`: Automated script to build the official `vj-webrock.jar`.
-- **Demo Application (Integrated)**:
-  - **[src](file:///c:/tomcat9/webapps/VJ_web_rock/src)**: Example service implementations and business logic.
-  - **[web](file:///c:/tomcat9/webapps/VJ_web_rock/web)**: Backup of web assets (HTML, JS, JSP) and `WEB-INF`.
-  - **Root Directory**: Serves as the live deployment root for Tomcat.
-- **[ServicesDoc](file:///c:/tomcat9/webapps/VJ_web_rock/ServicesDoc)**: A CLI tool to generate professional PDF documentation for your APIs.
+This repository is structured as a professional framework library along with an integrated demo application.
 
 ---
 
-## ✨ Key Features
+## Repository Structure
 
-### 1. Intelligent Routing
-- **Annotation Based**: Use `@Path("/url")` on classes and methods to define clear, hierarchical routing.
-- **HTTP Method Support**: Explicitly control access with `@GET` and `@POST` annotations.
-- **Internal Forwarding**: Simple redirection using the `@FORWARD("/target")` annotation.
+The project is organized into the following components:
 
-### 2. Powerful Dependency Injection
-- **Scope Injection**: Inject `RequestScope`, `SessionScope`, and `ApplicationScope` directly into methods or class fields.
-- **Auto-Wiring**: Use `@AutoWired(name="...")` to automatically pull objects from any scope into your service fields.
-- **Parameter Injection**: Map request parameters seamlessly using `@RequestParameter` and `@InjectRequestParameter`.
+- **VJWebRock-Core**
+  - Contains the core framework library
+  - `src/`: Framework source code (annotations, scopes, JSON binding)
+  - `make-jar.bat`: Script to build the `vj-webrock.jar`
 
-### 3. Automated POJO & JSON Binding
-- **Request Body Parsing**: Automatically converts incoming JSON request bodies into Java POJO objects using GSON.
-- **Response Serialization**: Automatically serializes Java return types into formatted JSON responses.
+- **Demo Application (Integrated)**
+  - `src/`: Example service implementations and business logic
+  - `web/`: Web assets (HTML, JS, JSP) and `WEB-INF`
+  - Root directory acts as the deployment root for Tomcat
 
-### 4. JavaScript Proxy SDK
-- **Zero-Config Client**: The framework automatically generates a JavaScript SDK (`vj-webrock.js`) mirroring your server-side services.
-- **Easy Integration**: Call server-side methods as if they were local JavaScript functions with full `fetch` and `Promise` support.
-
-### 5. Security Layer & Lifecycle
-- **Guards**: Secure classes with `@SecuredAccess`, specifying a `Guard` class to validate requests.
-- **Startup Hooks**: Use `@OnStartup` to execute code as soon as the framework initializes.
+- **ServicesDoc**
+  - CLI tool for generating professional API documentation (PDF)
 
 ---
 
-## 🚀 Getting Started & Execution
+## Industry-Standard Patterns
 
-### 1. Build the Framework Library
-Navigate to the `VJWebRock-Core` folder and run **`make-jar.bat`**. This creates `vj-webrock.jar` and automatically syncs it to the demo projects.
+VJWebRock implements widely adopted architectural patterns:
 
-### 2. Compile the Demo Application
-Run the **`compile`** script from the project root. This will compile all demo services into `WEB-INF/classes`.
-
-### 3. Run the Application (Tomcat 9)
-Point your Tomcat deployment to the root of this repository.
-- **URL**: `http://localhost:8080/VJ_web_rock/CalculatorDemo.html`
-- **SDK Access**: Visit `/js/vj-webrock.js` to see your auto-generated Proxy SDK.
+- Front Controller Pattern (similar to Spring MVC and Struts 2)
+- Dependency Injection (inspired by Spring and Google Guice)
+- Annotation-Based Routing (similar to JAX-RS and Spring Boot)
+- Automated SDK Generation (similar to OpenAPI/Swagger and GraphQL tools)
 
 ---
 
-## 🛡️ The "Bobby" Validation Rules
+## Key Features
 
-To ensure framework stability, the following rules must be strictly applied to all services:
+### Intelligent Routing
+- Define routes using `@Path("/url")` at class and method levels
+- Control HTTP access using `@GET` and `@POST`
+- Perform internal forwarding using `@FORWARD("/target")`
 
-1.  **Public Access**: All service classes and mapped methods must be `public`.
-2.  **OnStartup Integrity**: `@OnStartup` methods must be `void` and have **exactly zero** parameters.
-3.  **Setter Requirement**: Any field using `@AutoWired` or `@InjectRequestParameter` **MUST** have a corresponding public setter method.
-4.  **Unique Paths**: Multiple services cannot map to the same URL path.
-5.  **Single JSON Body**: A service method can have at most **one** parameter treated as the JSON request body.
-6.  **Path Formatting**: All `@Path` values should follow a consistent slash-prefixing convention (e.g., `@Path("/student")`).
+### Dependency Injection
+- Inject `RequestScope`, `SessionScope`, and `ApplicationScope`
+- Use `@AutoWired(name="...")` for automatic dependency resolution
+- Map request parameters using `@RequestParameter` and `@InjectRequestParameter`
 
----
+### POJO and JSON Binding
+- Automatically convert JSON request bodies into Java POJOs using GSON
+- Automatically serialize Java responses into JSON
 
-## 📈 The Evolution of VJWebRock
+### JavaScript Proxy SDK
+- Automatically generates `vj-webrock.js`
+- Allows calling backend services like local JavaScript functions
 
-| Phase | Milestone | Description |
-| :--- | :--- | :--- |
-| **Initial** | **Core Foundation** | Established Reflection-based annotation processing and basic class loading. |
-| **2nd** | **Basic Routing** | Implemented the Front Controller and mapped paths to Controller classes. |
-| **4th** | **Lifecycle Hooks** | Introduced `@OnStartup` for prioritized initialization logic. |
-| **6th** | **Auto-Wiring** | Built the Dependency Injection engine using the `@AutoWired` annotation. |
-| **10th** | **JSON Inbound** | Integrated GSON for automated request body to POJO conversion. |
-| **13th** | **Proxy SDK Gen** | **Zero-Config JavaScript Proxy SDK Generation for client-side integration.** |
-
----
-
-## 🛠️ Tooling & Database
-
-### Documentation Tool: ServicesDoc
-A standalone CLI tool to analyze your compiled application, perform validation checks, and generate professional PDF documentation.
+### Security and Lifecycle
+- Secure services using `@SecuredAccess` with custom Guard classes
+- Execute startup logic using `@OnStartup` with priority support
 
 ### Database Integration (MySQL)
-VJWebRock simplifies database interaction. Simply add `mysql-connector-java.jar` to your `WEB-INF/lib` folder and use standard JDBC inside your service methods.
+- Direct JDBC integration
+- Full CRUD operation support
+
+### Bobby-Powered Validation
+- Pre-compilation validation layer ensuring strict framework rules
+- Prevents invalid configurations before deployment
+
+---
+
+## Getting Started
+
+### 1. Build the Framework
+Navigate to `VJWebRock-Core` and run:
+```bash
+make-jar.bat
+```
+
+---
+
+### 2. Compile the Application
+From the project root, run:
+
+**Command Prompt**
+```bash
+compile
+```
+
+**PowerShell**
+```bash
+.\compile
+```
+
+---
+
+### 3. Run on Tomcat 9
+Deploy the project to Tomcat:
+
+- URL: `http://localhost:8080/VJ_web_rock/CalculatorDemo.html`
+- SDK Access: `/js/vj-webrock.js`
+
+---
+
+## Web Configuration (web.xml)
+
+VJWebRock uses a Front Controller architecture with supporting startup and utility servlets.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                      http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+  version="4.0">
+
+    <description>
+        VJWebRock implementation
+    </description>
+    <display-name>VJWebRock</display-name>
+
+    <servlet>
+        <servlet-name>VJWebRock</servlet-name>
+        <servlet-class>com.varnit.jain.webRock.VJWebRock</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>VJWebRock</servlet-name>
+        <url-pattern>/schoolService/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>VJWebRockStarter</servlet-name>
+        <servlet-class>com.varnit.jain.webRock.VJWebRockStarter</servlet-class>
+        <init-param>
+            <param-name>SERVICE_PACKAGE_PREFIX</param-name>
+            <param-value>bobby</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>JSGenerator</servlet-name>
+        <servlet-class>com.varnit.jain.webRock.JSGeneratorServlet</servlet-class>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>JSLoader</servlet-name>
+        <servlet-class>com.varnit.jain.webRock.JSLoaderServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>JSLoader</servlet-name>
+        <url-pattern>/js/*</url-pattern>
+    </servlet-mapping>
+
+</web-app>
+```
+
+---
+
+## Configuration Validation Rules
+
+### Required Parameter
+
+- `SERVICE_PACKAGE_PREFIX`
+  - Defines the base package containing service classes
+
+---
+
+### Validation Rules
+
+1. Parameter must be present in `VJWebRockStarter`
+2. Value must not be null or empty
+3. Must follow valid Java package naming conventions
+4. Package must exist in `WEB-INF/classes`
+5. Startup order must be correct (`VJWebRockStarter` before others)
+
+---
+
+### Optional Configuration
+
+```xml
+<context-param>
+    <param-name>JsFile</param-name>
+    <param-value>custom-sdk.js</param-value>
+</context-param>
+```
+
+Default file: `*.js`
+Save in different files as per requirement.
+
+---
+
+## Bobby Validation Rules
+
+1. All service classes and methods must be `public`
+2. `@OnStartup` methods must return `void` and have zero parameters
+3. Fields with `@AutoWired` or `@InjectRequestParameter` must have public setters
+4. URL paths must be unique
+5. Only one JSON body parameter per method
+6. All `@Path` values must follow consistent formatting
+
+---
+
+## Evolution of VJWebRock
+
+| Phase   | Milestone              | Description |
+|--------|----------------------|------------|
+| Initial | Core Foundation       | Reflection-based annotation processing |
+| 2nd     | Basic Routing         | Front Controller and URL mapping |
+| 3rd     | Forwarding            | Introduced `@FORWARD` |
+| 4th     | Lifecycle Hooks       | Introduced `@OnStartup` |
+| 5th     | Scope Injection       | Request, Session, Application scopes |
+| 6th     | Auto-Wiring           | Dependency Injection engine |
+| 7th     | Method Binding        | Parameter-to-method mapping |
+| 9th     | Class Binding         | Field-level injection |
+| 10th    | JSON Inbound          | JSON to POJO conversion |
+| 11th    | Security Layer        | Guard-based access control |
+| 12th    | JSON Outbound         | JSON serialization |
+| 13th    | Proxy SDK Generation  | JavaScript SDK generation |
+
+---
+
+## Documentation Tool: ServicesDoc
+
+ServicesDoc is a CLI tool that:
+
+- Scans compiled `.class` files
+- Maps service endpoints
+- Detects dependency injections and scopes
+- Validates configuration issues
+- Generates professional PDF documentation
+
+---
+
+## Database Configuration Example
+
+```java
+private Connection getConnection() throws Exception {
+    Class.forName("com.mysql.cj.jdbc.Driver");
+    return DriverManager.getConnection(
+        "jdbc:mysql://localhost:3306/YourDB",
+        "username",
+        "password"
+    );
+}
+```
+
+---
+
+## Example CRUD Service
+
+```java
+@Path("/data")
+public class DataService {
+    @Path("/add")
+    @POST
+    public String add(Pojo obj) {
+        try (Connection con = getConnection()) {
+            PreparedStatement ps = con.prepareStatement("INSERT INTO table VALUES(?,?)");
+            ps.setInt(1, obj.getId());
+            ps.setString(2, obj.getName());
+            ps.executeUpdate();
+            return "Success";
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+}
+```
+
+---
+
+## Notes
+
+- Place services in the package defined in `web.xml`
+- Ensure required dependencies (Servlet API, GSON, MySQL driver) are available
+- Use the compile script for building services
+- Use ServicesDoc for documentation generation
 
 ---
 
